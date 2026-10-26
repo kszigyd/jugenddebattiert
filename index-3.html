@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Debatten-Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+  --bg-top: #e9eef4; --bg-bottom: #d4dde8; --bg-glow: rgba(255,255,255,.75);
+  --ink: #14213d; --muted: #56637a;
+  --card: rgba(255,255,255,.78); --card-border: rgba(20,33,61,.12); --shadow: rgba(20,33,61,.28);
+  --track: rgba(20,33,61,.10); --zone-warn: rgba(227,166,47,.35); --zone-over: rgba(214,69,50,.28);
+  --warn: #b97c0c; --danger: #d64532;
+  --btn-bg: #14213d; --btn-fg: #ffffff; --ghost-bg: rgba(255,255,255,.55); --focus: #3157a8;
+  --chip-on-bg: #14213d; --chip-on-fg: #ffffff;
+  --floor: #c3cedb; --floor-edge: #a9b8ca; --floor-shadow: rgba(20,33,61,.16);
+  --beam: #ffffff; --beam-op: .55;
+  --team-a: #e3a62f; --team-b: #3157a8; --desk-top: #2b3a58; --plate: #ffffff; --plate-ink: #14213d;
+  --shirt-1: #e07a5f; --shirt-2: #3d405b; --shirt-3: #81b29a; --shirt-4: #8e63c9; --collar: #ffffff;
+  --skin-1: #f0c39b; --skin-2: #d49a6a; --skin-3: #8f5a3c; --skin-4: #e9b48a;
+  --hair-1: #231c19; --hair-2: #5b3a22; --hair-3: #b8642c;
+  --eye: #14213d; --mouth: #7a2e22;
+  --bubble: #ffffff; --bubble-stroke: rgba(20,33,61,.16); --bubble-ink: #b7c2d2; --bubble-mark: #14213d;
+  --bell: #e0a93a; --bell-dark: #a97a1d; --wood: #5a4532; --paper: #ffffff; --paper-line: #c9d2de;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-top: #121a2b; --bg-bottom: #0b111e; --bg-glow: rgba(120,150,220,.16);
+    --ink: #eef2f8; --muted: #9aa6bb;
+    --card: rgba(20,28,45,.80); --card-border: rgba(255,255,255,.10); --shadow: rgba(0,0,0,.6);
+    --track: rgba(255,255,255,.10); --zone-warn: rgba(242,181,68,.28); --zone-over: rgba(255,107,87,.28);
+    --warn: #f2b544; --danger: #ff6b57;
+    --btn-bg: #eef2f8; --btn-fg: #0b111e; --ghost-bg: rgba(255,255,255,.05); --focus: #8fb0ff;
+    --chip-on-bg: #eef2f8; --chip-on-fg: #0b111e;
+    --floor: #1c2638; --floor-edge: #27344c; --floor-shadow: rgba(0,0,0,.4);
+    --beam: #cfe0ff; --beam-op: .14;
+    --team-a: #c88d22; --team-b: #2c4f95; --desk-top: #0e1626; --plate: #e9eef4; --plate-ink: #14213d;
+    --shirt-1: #c96a51; --shirt-2: #4b4f72; --shirt-3: #6f9c86; --shirt-4: #7a55b0; --collar: #e9eef4;
+    --bubble: #1d2840; --bubble-stroke: rgba(255,255,255,.12); --bubble-ink: #4a5878; --bubble-mark: #eef2f8;
+    --paper: #e9eef4; --paper-line: #9aa6bb;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-top: #121a2b; --bg-bottom: #0b111e; --bg-glow: rgba(120,150,220,.16);
+  --ink: #eef2f8; --muted: #9aa6bb;
+  --card: rgba(20,28,45,.80); --card-border: rgba(255,255,255,.10); --shadow: rgba(0,0,0,.6);
+  --track: rgba(255,255,255,.10); --zone-warn: rgba(242,181,68,.28); --zone-over: rgba(255,107,87,.28);
+  --warn: #f2b544; --danger: #ff6b57;
+  --btn-bg: #eef2f8; --btn-fg: #0b111e; --ghost-bg: rgba(255,255,255,.05); --focus: #8fb0ff;
+  --chip-on-bg: #eef2f8; --chip-on-fg: #0b111e;
+  --floor: #1c2638; --floor-edge: #27344c; --floor-shadow: rgba(0,0,0,.4);
+  --beam: #cfe0ff; --beam-op: .14;
+  --team-a: #c88d22; --team-b: #2c4f95; --desk-top: #0e1626; --plate: #e9eef4; --plate-ink: #14213d;
+  --shirt-1: #c96a51; --shirt-2: #4b4f72; --shirt-3: #6f9c86; --shirt-4: #7a55b0; --collar: #e9eef4;
+  --bubble: #1d2840; --bubble-stroke: rgba(255,255,255,.12); --bubble-ink: #4a5878; --bubble-mark: #eef2f8;
+  --paper: #e9eef4; --paper-line: #9aa6bb;
+}
+
+* { box-sizing: border-box; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; min-height: 100%;
+  font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ink);
+  background-color: var(--bg-bottom);
+  background-image: radial-gradient(ellipse 80% 60% at 50% 0%, var(--bg-glow), transparent 70%),
+                    linear-gradient(var(--bg-top), var(--bg-bottom));
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Background scene */
+.scene-wrap { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.scene-wrap svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.arm { fill: none; stroke-width: 20; stroke-linecap: round; stroke-linejoin: round; }
+.finger { fill: none; stroke-width: 7; stroke-linecap: round; }
+.plate-text { font-family: 'Archivo', system-ui, sans-serif; font-weight: 800; font-stretch: 112%; font-size: 22px; letter-spacing: .02em; fill: var(--plate-ink); }
+.mark-text { font-family: 'Archivo', system-ui, sans-serif; font-weight: 900; font-size: 46px; fill: var(--bubble-mark); }
+
+/* Timer card */
+main { position: relative; z-index: 1; display: flex; justify-content: center; padding: clamp(14px, 4vh, 44px) 16px 24px; }
+.card {
+  width: min(580px, 100%);
+  background: var(--card);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  padding: 22px clamp(18px, 4vw, 30px) 20px;
+  box-shadow: 0 24px 60px -28px var(--shadow);
+}
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+.label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.bell-icon { width: 20px; height: 20px; transform-origin: 50% 15%; }
+.bell-icon.ring { color: var(--warn); animation: shake .22s linear infinite; }
+@keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(16deg); } 75% { transform: rotate(-16deg); } }
+.total { font-variant-numeric: tabular-nums; }
+.phase { margin: 16px 0 0; font-size: clamp(26px, 5.4vw, 36px); font-weight: 800; font-stretch: 110%; line-height: 1.1; letter-spacing: -.01em; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 17px; }
+.clock {
+  margin: 10px 0 14px;
+  font-weight: 800; font-stretch: 125%;
+  font-size: clamp(64px, 17vw, 128px);
+  line-height: 1; letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+  transition: color .3s;
+  white-space: nowrap;
+}
+.clock .tenths { font-size: .38em; font-weight: 600; color: var(--muted); letter-spacing: 0; margin-left: .06em; }
+.card[data-zone="warn"] .clock { color: var(--warn); }
+.card[data-zone="over"] .clock { color: var(--danger); }
+.bar { position: relative; height: 12px; border-radius: 999px; background: var(--track); cursor: pointer; touch-action: none; }
+.bar::before { content: ""; position: absolute; inset: -14px 0; }
+.bar:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+.knob { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--card); border: 3px solid var(--ink); pointer-events: none; box-shadow: 0 2px 8px var(--shadow); }
+.card[data-zone="warn"] .knob { border-color: var(--warn); }
+.card[data-zone="over"] .knob { border-color: var(--danger); }
+.zone { position: absolute; top: 0; bottom: 0; }
+.zone.warn { background: var(--zone-warn); }
+.zone.over { background: var(--zone-over); border-radius: 0 999px 999px 0; }
+.fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; background: var(--ink); }
+.card[data-zone="warn"] .fill { background: var(--warn); }
+.card[data-zone="over"] .fill { background: var(--danger); }
+.tick { position: absolute; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; background: var(--ink); opacity: .45; border-radius: 2px; }
+.status { margin: 14px 0 0; min-height: 1.4em; font-size: 16px; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.btn {
+  appearance: none; border: 0; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 17px;
+  padding: 14px 22px; border-radius: 16px;
+  transition: transform .08s ease, opacity .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.btn.primary { flex: 1 1 170px; background: var(--btn-bg); color: var(--btn-fg); font-stretch: 112%; }
+.btn.ghost { background: var(--ghost-bg); color: var(--ink); border: 1px solid var(--card-border); }
+.parts { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--card-border); display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.group { display: flex; align-items: center; gap: 5px; }
+.group-name { font-size: 13px; color: var(--muted); margin-right: 3px; }
+.chip {
+  appearance: none; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600;
+  min-width: 34px; height: 34px; padding: 0 10px; border-radius: 999px;
+  border: 1px solid var(--card-border); background: transparent; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.chip.done { opacity: .45; }
+.chip.active { background: var(--chip-on-bg); color: var(--chip-on-fg); border-color: transparent; opacity: 1; }
+.next { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.hint { margin: 6px 0 0; font-size: 13px; color: var(--muted); opacity: .8; }
+
+/* Finale */
+.night {
+  position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 120% 90% at 50% 100%, #18204a 0%, #070915 70%);
+  transition: opacity 1.6s ease;
+}
+#fw { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
+.finale {
+  position: fixed; inset: 0; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 24px; text-align: center; color: #ffffff;
+  opacity: 0; pointer-events: none; transition: opacity 1s ease .8s;
+}
+.finale h2 { margin: 0; font-size: clamp(42px, 10vw, 96px); font-weight: 900; font-stretch: 125%; letter-spacing: -.02em; text-shadow: 0 4px 30px rgba(0,0,0,.6); }
+.finale p { margin: 0; font-size: 19px; opacity: .85; }
+.finale .btn { margin-top: 10px; background: #ffffff; color: #0b111e; }
+body.celebrate .night { opacity: .93; }
+body.celebrate .finale { opacity: 1; pointer-events: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bell-icon.ring { animation: none; }
+  .night, .finale { transition: none; }
+}
+@media (max-width: 420px) {
+  .controls .btn.ghost { flex: 1 1 0; padding: 12px 10px; font-size: 15px; }
+}
+</style>
+</head>
+<body>
+
+<div class="scene-wrap" id="scene" aria-hidden="true"></div>
+
+<main>
+  <section class="card" id="card" data-zone="normal">
+    <div class="top">
+      <span class="label">
+        <svg id="bellIcon" class="bell-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 16v-5a6 6 0 0 1 12 0v5l1.6 2.2H4.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M10 20.6a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Debatten-Timer
+      </span>
+      <span class="total" id="totalLeft"></span>
+    </div>
+
+    <h1 class="phase" id="phase">Eröffnungsrunde</h1>
+    <p class="sub" id="sub">Rede 1 von 4</p>
+
+    <div class="clock" role="timer" aria-label="Stoppuhr"><span id="clockMain">00:00</span><span class="tenths" id="clockTenths">.0</span></div>
+
+    <div class="bar" id="bar" role="slider" tabindex="0" aria-label="Zeitachse der aktuellen Rede" aria-valuemin="0" title="Klicken oder ziehen, um in der Zeit zu springen">
+      <div class="zone warn" id="zoneWarn"></div>
+      <div class="zone over" id="zoneOver"></div>
+      <div class="fill" id="fill"></div>
+      <div class="tick" id="tickWarn"></div>
+      <div class="tick" id="tickEnd"></div>
+      <div class="knob" id="knob"></div>
+    </div>
+
+    <p class="status" id="status"></p>
+
+    <div class="controls">
+      <button class="btn primary" id="startBtn" type="button">Start</button>
+      <button class="btn ghost" id="resetBtn" type="button">Zurücksetzen</button>
+      <button class="btn ghost" id="testBtn" type="button" title="Kurze Glocke abspielen, um die Lautstärke zu prüfen">Glocke testen</button>
+    </div>
+
+    <div class="parts" id="parts" aria-label="Zu einem Teil der Debatte springen"></div>
+    <p class="next" id="next"></p>
+    <p class="hint">Die Leertaste startet und pausiert. Klicke auf die Zeitachse oder ziehe den Punkt, um vor- oder zurückzuspringen. Tippe auf eine Zahl, um zu dieser Rede zu springen.</p>
+  </section>
+</main>
+
+<div class="night" aria-hidden="true"></div>
+<canvas id="fw" aria-hidden="true"></canvas>
+<div class="finale" id="finale">
+  <h2>Debatte beendet</h2>
+  <p>Danke an alle vier Rednerinnen und Redner.</p>
+  <button class="btn" id="againBtn" type="button">Neu starten</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Schedule ---------- */
+  const WARN_RING = 1.5, FINAL_RING = 5;
+  const SEGMENTS = [];
+  for (let i = 0; i < 4; i++) SEGMENTS.push({ phase: 'Eröffnungsrunde', group: 'Opening', label: 'Eröffnungsrunde', n: i + 1, sub: `Rede ${i + 1} von 4`, warn: 105, end: 120 });
+  SEGMENTS.push({ phase: 'Freie Aussprache', group: 'Free', label: 'Freie Aussprache', n: 0, sub: 'Beide Seiten im offenen Austausch', warn: 690, end: 720 });
+  for (let i = 0; i < 4; i++) SEGMENTS.push({ phase: 'Schlussrede', group: 'Closing', label: 'Schlussrede', n: i + 1, sub: `Rede ${i + 1} von 4`, warn: 45, end: 60 });
+  SEGMENTS.forEach(s => {
+    s.events = [{ at: s.warn, dur: WARN_RING }, { at: s.end, dur: FINAL_RING }];
+    s.total = s.end + FINAL_RING; // stopwatch keeps running through the final bell, then resets
+  });
+  const TOTAL = SEGMENTS.reduce((a, s) => a + s.total, 0);
+
+  const S = { status: 'idle', seg: 0, elapsed: 0, last: 0, fired: [false, false] };
+  let testRingingUntil = 0;
+
+  const $ = s => document.querySelector(s);
+  const els = {
+    card: $('#card'), phase: $('#phase'), sub: $('#sub'), mm: $('#clockMain'), tenths: $('#clockTenths'),
+    fill: $('#fill'), tickWarn: $('#tickWarn'), tickEnd: $('#tickEnd'), zoneWarn: $('#zoneWarn'), zoneOver: $('#zoneOver'),
+    status: $('#status'), next: $('#next'), totalLeft: $('#totalLeft'), start: $('#startBtn'), reset: $('#resetBtn'),
+    test: $('#testBtn'), parts: $('#parts'), bellIcon: $('#bellIcon'), again: $('#againBtn')
+  };
+
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = sec => { sec = Math.max(0, sec); return `${pad(Math.floor(sec / 60))}:${pad(Math.floor(sec % 60))}`; };
+  const fmtShort = sec => `${Math.floor(sec / 60)}:${pad(Math.floor(sec % 60))}`;
+
+  /* ---------- Audio ---------- */
+  let AC = null, master = null, noise = null, activeBell = null;
+  function ensureAudio() {
+    if (!AC) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return false;
+      AC = new Ctx();
+      const comp = AC.createDynamicsCompressor();
+      comp.threshold.value = -12; comp.knee.value = 8; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.2;
+      master = AC.createGain(); master.gain.value = 0.9;
+      master.connect(comp); comp.connect(AC.destination);
+      noise = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (AC.state === 'suspended') AC.resume();
+    return true;
+  }
+
+  // A shaken brass handbell: rapid clapper strikes, each a set of inharmonic partials plus a metallic click.
+  function ringBell(duration) {
+    if (!ensureAudio() || duration <= 0) return;
+    stopBell();
+    const bus = AC.createGain(); bus.connect(master);
+    const t0 = AC.currentTime + 0.02, tEnd = t0 + duration;
+    const f0 = 1046;
+    const partials = [[1, 1, 1.4], [2.0, .25, .9], [2.74, .55, .8], [3.98, .2, .5], [5.36, .22, .35], [8.6, .08, .2]];
+    let t = t0, k = 0;
+    while (t < tEnd - 0.04) {
+      const amp = (k % 2 ? .6 : 1) * (.85 + Math.random() * .3) * .08;
+      const detune = 1 + (k % 2 ? .004 : -.002);
+      for (const [r, a, dec] of partials) {
+        const o = AC.createOscillator();
+        o.frequency.value = f0 * r * detune;
+        const g = AC.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(amp * a, t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+        o.connect(g); g.connect(bus);
+        o.start(t); o.stop(t + dec + 0.02);
+      }
+      const n = AC.createBufferSource(); n.buffer = noise;
+      const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = 1.2;
+      const ng = AC.createGain();
+      ng.gain.setValueAtTime(amp * .7, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+      n.connect(bp); bp.connect(ng); ng.connect(bus);
+      n.start(t, Math.random() * 1.5, 0.04);
+      t += 0.11 + Math.random() * 0.035; k++;
+    }
+    bus.gain.setValueAtTime(1, tEnd);
+    bus.gain.exponentialRampToValueAtTime(0.0001, tEnd + 0.9);
+    activeBell = { bus };
+    setTimeout(() => {
+      if (activeBell && activeBell.bus === bus) activeBell = null;
+      try { bus.disconnect(); } catch (e) {}
+    }, (duration + 1.3) * 1000);
+  }
+  function stopBell() {
+    if (!activeBell || !AC) return;
+    const bus = activeBell.bus; activeBell = null;
+    const now = AC.currentTime;
+    bus.gain.cancelScheduledValues(now);
+    bus.gain.setValueAtTime(bus.gain.value || 1, now);
+    bus.gain.linearRampToValueAtTime(0, now + 0.08);
+    setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, 200);
+  }
+
+  function fwSound(type, pan, size, crackle) {
+    if (!AC) return;
+    const t = AC.currentTime;
+    const out = AC.createGain();
+    if (AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); out.connect(p); p.connect(master); }
+    else out.connect(master);
+    if (type === 'launch') {
+      const n = AC.createBufferSource(); n.buffer = noise;
+      const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 9;
+      bp.frequency.setValueAtTime(800, t); bp.frequency.exponentialRampToValueAtTime(2800, t + 0.85);
+      const g = AC.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.08); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+      n.connect(bp); bp.connect(g); g.connect(out);
+      n.start(t, Math.random() * 0.9, 1);
+      return;
+    }
+    const n = AC.createBufferSource(); n.buffer = noise;
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(2600, t); lp.frequency.exponentialRampToValueAtTime(140, t + 1.4);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9 * size, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    n.connect(lp); lp.connect(g); g.connect(out);
+    n.start(t, Math.random() * 0.25, 1.7);
+    const o = AC.createOscillator();
+    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(36, t + 0.5);
+    const og = AC.createGain();
+    og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(0.75 * size, t + 0.01); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.65);
+    if (crackle) {
+      const count = 14 + Math.floor(Math.random() * 18);
+      for (let i = 0; i < count; i++) {
+        const ct = t + 0.35 + Math.random() * 1.3;
+        const c = AC.createBufferSource(); c.buffer = noise;
+        const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500 + Math.random() * 3000;
+        const cg = AC.createGain();
+        cg.gain.setValueAtTime(0.0001, ct); cg.gain.exponentialRampToValueAtTime(0.12 + Math.random() * 0.2, ct + 0.002); cg.gain.exponentialRampToValueAtTime(0.0001, ct + 0.03);
+        c.connect(hp); hp.connect(cg); cg.connect(out);
+        c.start(ct, Math.random() * 1.9, 0.05);
+      }
+    }
+  }
+
+  /* ---------- Keep screen awake while running ---------- */
+  let wakeLock = null;
+  async function keepAwake(on) {
+    try {
+      if (on && 'wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+    } catch (e) { wakeLock = null; }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && S.status === 'running') keepAwake(true);
+  });
+
+  /* ---------- Timer logic ---------- */
+  function tick() {
+    if (S.status === 'running') {
+      const now = performance.now();
+      S.elapsed += now - S.last; S.last = now;
+      const seg = SEGMENTS[S.seg];
+      const t = S.elapsed / 1000;
+      seg.events.forEach((ev, i) => {
+        if (!S.fired[i] && t >= ev.at) { S.fired[i] = true; ringBell(ev.at + ev.dur - t); }
+      });
+      if (t >= seg.total) {
+        if (S.seg + 1 >= SEGMENTS.length) { finish(); }
+        else { S.elapsed -= seg.total * 1000; S.seg++; S.fired = [false, false]; }
+      }
+    }
+    render();
+  }
+
+  function start() { S.status = 'running'; S.last = performance.now(); keepAwake(true); }
+  function pause() { tick(); S.status = 'paused'; stopBell(); keepAwake(false); }
+  function resume() {
+    S.status = 'running'; S.last = performance.now(); keepAwake(true);
+    const seg = SEGMENTS[S.seg], t = S.elapsed / 1000;
+    seg.events.forEach((ev, i) => { if (S.fired[i] && t >= ev.at && t < ev.at + ev.dur) ringBell(ev.at + ev.dur - t); });
+  }
+  function reset() {
+    stopBell(); stopFireworks(); keepAwake(false);
+    S.status = 'idle'; S.seg = 0; S.elapsed = 0; S.fired = [false, false];
+    render();
+  }
+  function jumpTo(i) {
+    stopBell();
+    if (S.status === 'done') { stopFireworks(); S.status = 'paused'; }
+    S.seg = i; S.elapsed = 0; S.fired = [false, false]; S.last = performance.now();
+    render();
+  }
+  function seekTo(sec, ring) {
+    const seg = SEGMENTS[Math.min(S.seg, SEGMENTS.length - 1)];
+    if (S.status === 'done') { stopFireworks(); S.status = 'paused'; }
+    const t = Math.max(0, Math.min(sec, seg.total - 0.05));
+    stopBell();
+    S.elapsed = t * 1000; S.last = performance.now();
+    S.fired = seg.events.map(ev => t >= ev.at);
+    if (ring && S.status === 'running') {
+      seg.events.forEach(ev => { if (t >= ev.at && t < ev.at + ev.dur) ringBell(ev.at + ev.dur - t); });
+    }
+    render();
+  }
+  const barEl = document.getElementById('bar');
+  const knobEl = document.getElementById('knob');
+  let dragging = false;
+  function barSeconds(e) {
+    const r = barEl.getBoundingClientRect();
+    const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    return f * SEGMENTS[Math.min(S.seg, SEGMENTS.length - 1)].total;
+  }
+  barEl.addEventListener('pointerdown', e => {
+    dragging = true;
+    try { barEl.setPointerCapture(e.pointerId); } catch (_) {}
+    seekTo(barSeconds(e), false);
+  });
+  barEl.addEventListener('pointermove', e => { if (dragging) seekTo(barSeconds(e), false); });
+  barEl.addEventListener('pointerup', e => { if (!dragging) return; dragging = false; seekTo(barSeconds(e), true); });
+  barEl.addEventListener('pointercancel', () => { dragging = false; });
+  barEl.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 15 : 5;
+    if (e.key === 'ArrowRight') { e.preventDefault(); seekTo(S.elapsed / 1000 + step, true); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); seekTo(S.elapsed / 1000 - step, true); }
+  });
+
+  function finish() {
+    S.status = 'done'; S.seg = SEGMENTS.length - 1; S.elapsed = SEGMENTS[S.seg].total * 1000;
+    keepAwake(false);
+    startFireworks();
+  }
+
+  els.start.addEventListener('click', () => {
+    ensureAudio();
+    if (S.status === 'idle') start();
+    else if (S.status === 'running') pause();
+    else if (S.status === 'paused') resume();
+    else { reset(); start(); }
+    render();
+  });
+  els.reset.addEventListener('click', reset);
+  els.again.addEventListener('click', reset);
+  els.test.addEventListener('click', () => { ensureAudio(); ringBell(1.5); testRingingUntil = performance.now() + 1500; });
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); els.start.click(); }
+  });
+
+  /* ---------- Part chips ---------- */
+  const chips = [];
+  (function buildChips() {
+    let group = null, groupName = null;
+    SEGMENTS.forEach((s, i) => {
+      if (s.group !== groupName) {
+        groupName = s.group;
+        group = document.createElement('div'); group.className = 'group';
+        if (s.group !== 'Free') {
+          const lab = document.createElement('span'); lab.className = 'group-name'; lab.textContent = s.label;
+          group.appendChild(lab);
+        }
+        els.parts.appendChild(group);
+      }
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      b.textContent = s.group === 'Free' ? 'Freie Aussprache' : String(s.n);
+      b.title = s.group === 'Free' ? 'Zur freien Aussprache springen' : `Springen zu: ${s.phase}, Rede ${s.n}`;
+      b.addEventListener('click', () => jumpTo(i));
+      group.appendChild(b); chips.push(b);
+    });
+  })();
+
+  /* ---------- Render ---------- */
+  const startLabels = { idle: 'Start', running: 'Pause', paused: 'Weiter', done: 'Nochmals starten' };
+  function render() {
+    const idx = Math.min(S.seg, SEGMENTS.length - 1);
+    const seg = SEGMENTS[idx];
+    const t = S.elapsed / 1000;
+    const shown = Math.min(t, seg.end); // stopwatch stops at the final bell
+    els.mm.textContent = fmt(shown);
+    els.tenths.textContent = '.' + Math.floor((shown * 10) % 10);
+    els.phase.textContent = seg.phase;
+    els.sub.textContent = seg.sub;
+
+    const pct = v => (v / seg.total * 100).toFixed(3) + '%';
+    els.fill.style.width = pct(shown);
+    knobEl.style.left = pct(shown);
+    barEl.setAttribute('aria-valuemax', String(seg.total));
+    barEl.setAttribute('aria-valuenow', String(Math.round(t)));
+    barEl.setAttribute('aria-valuetext', fmt(shown));
+    els.tickWarn.style.left = pct(seg.warn);
+    els.tickEnd.style.left = pct(seg.end);
+    els.zoneWarn.style.left = pct(seg.warn); els.zoneWarn.style.width = pct(seg.end - seg.warn);
+    els.zoneOver.style.left = pct(seg.end); els.zoneOver.style.right = '0';
+
+    const zone = t < seg.warn ? 'normal' : t < seg.end ? 'warn' : 'over';
+    els.card.dataset.zone = zone;
+    const ringing = S.status === 'running' && seg.events.some(e => t >= e.at && t < e.at + e.dur);
+    els.bellIcon.classList.toggle('ring', ringing || performance.now() < testRingingUntil);
+
+    let msg;
+    if (S.status === 'done') msg = 'Alle Runden beendet.';
+    else if (ringing && t >= seg.end) msg = 'Die Zeit ist um. Die Schlussglocke läutet.';
+    else if (ringing) msg = 'Vorwarnung: noch 15 Sekunden.';
+    else if (zone === 'warn') msg = `Schlussglocke in ${Math.ceil(seg.end - t)} s`;
+    else if (zone === 'over') msg = 'Die Zeit ist um. Gleich geht es weiter.';
+    else msg = `Vorwarnung bei ${fmtShort(seg.warn)}, Schlussglocke bei ${fmtShort(seg.end)}`;
+    if (S.status === 'paused') msg = 'Pausiert. ' + msg;
+    els.status.textContent = msg;
+
+    const nxt = SEGMENTS[idx + 1];
+    els.next.textContent = S.status === 'done' ? '' :
+      nxt ? `Als Nächstes: ${nxt.phase}${nxt.group === 'Free' ? '' : ', Rede ' + nxt.n}` : 'Als Nächstes: Feuerwerk';
+    const before = SEGMENTS.slice(0, idx).reduce((a, s) => a + s.total, 0);
+    els.totalLeft.textContent = `Insgesamt noch ${fmt(S.status === 'done' ? 0 : TOTAL - before - t)}`;
+
+    chips.forEach((c, i) => {
+      c.classList.toggle('active', i === idx && S.status !== 'done');
+      c.classList.toggle('done', i < idx || S.status === 'done');
+    });
+    els.start.textContent = startLabels[S.status];
+  }
+
+  /* ---------- Fireworks ---------- */
+  const FW = { cv: $('#fw'), x: null, w: 0, h: 0, rockets: [], parts: [], running: false, launchUntil: 0, nextLaunch: 0, last: 0, raf: 0 };
+  function fwResize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    FW.w = window.innerWidth; FW.h = window.innerHeight;
+    FW.cv.width = Math.round(FW.w * dpr); FW.cv.height = Math.round(FW.h * dpr);
+    FW.x = FW.cv.getContext('2d');
+    FW.x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', () => { if (FW.running) fwResize(); });
+  function startFireworks() {
+    document.body.classList.add('celebrate');
+    fwResize();
+    FW.rockets = []; FW.parts = []; FW.running = true;
+    const now = performance.now();
+    FW.launchUntil = now + 30000; FW.nextLaunch = now + 700; FW.last = now;
+    cancelAnimationFrame(FW.raf);
+    FW.raf = requestAnimationFrame(fwLoop);
+  }
+  function stopFireworks() {
+    FW.running = false; cancelAnimationFrame(FW.raf);
+    document.body.classList.remove('celebrate');
+    if (FW.x) FW.x.clearRect(0, 0, FW.w, FW.h);
+    FW.rockets = []; FW.parts = [];
+  }
+  function launch() {
+    if (!FW.running) return;
+    const x = FW.w * (0.1 + Math.random() * 0.8);
+    const targetY = FW.h * (0.1 + Math.random() * 0.35);
+    const g = 420;
+    const roll = Math.random();
+    FW.rockets.push({
+      x, y: FW.h + 6, vx: (Math.random() - 0.5) * 70, vy: -Math.sqrt(2 * g * (FW.h - targetY)), g,
+      hue: Math.random() * 360, kind: roll < 0.3 ? 'glitter' : roll < 0.55 ? 'ring' : 'peony'
+    });
+    fwSound('launch', (x / FW.w) * 1.6 - 0.8);
+  }
+  function explode(r) {
+    const scale = Math.max(0.6, Math.min(FW.w, FW.h) / 700);
+    const n = r.kind === 'ring' ? 80 : 110 + Math.floor(Math.random() * 60);
+    const hue2 = Math.random() < 0.4 ? (r.hue + 150) % 360 : r.hue;
+    for (let i = 0; i < n; i++) {
+      const a = (r.kind === 'ring' ? i / n : Math.random()) * Math.PI * 2;
+      const sp = (r.kind === 'ring' ? 220 : 50 + Math.random() * 200) * scale;
+      FW.parts.push({
+        x: r.x, y: r.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        life: 0, max: 1.3 + Math.random() * 1.1,
+        hue: (i % 2 ? r.hue : hue2) + Math.random() * 20 - 10,
+        glitter: r.kind === 'glitter', size: 1.4 + Math.random() * 1.4
+      });
+    }
+    fwSound('boom', (r.x / FW.w) * 1.6 - 0.8, 0.6 + Math.random() * 0.5, r.kind === 'glitter' || Math.random() < 0.3);
+  }
+  function fwLoop(now) {
+    const dt = Math.min(0.05, (now - FW.last) / 1000); FW.last = now;
+    const x = FW.x;
+    x.globalCompositeOperation = 'destination-out';
+    x.fillStyle = 'rgba(0,0,0,0.22)'; x.fillRect(0, 0, FW.w, FW.h);
+    x.globalCompositeOperation = 'lighter';
+
+    if (now < FW.launchUntil && now >= FW.nextLaunch) {
+      const volley = Math.random() < 0.2 ? 3 : 1;
+      for (let i = 0; i < volley; i++) setTimeout(launch, i * 150);
+      FW.nextLaunch = now + 350 + Math.random() * 900;
+    }
+    for (let i = FW.rockets.length - 1; i >= 0; i--) {
+      const r = FW.rockets[i];
+      r.vy += r.g * dt; r.x += r.vx * dt; r.y += r.vy * dt;
+      x.fillStyle = `hsla(${r.hue},100%,82%,1)`;
+      x.beginPath(); x.arc(r.x, r.y, 2.3, 0, Math.PI * 2); x.fill();
+      if (r.vy >= -25) { explode(r); FW.rockets.splice(i, 1); }
+    }
+    const drag = Math.pow(0.3, dt);
+    for (let i = FW.parts.length - 1; i >= 0; i--) {
+      const p = FW.parts[i];
+      p.life += dt;
+      if (p.life >= p.max) { FW.parts.splice(i, 1); continue; }
+      p.vx *= drag; p.vy = p.vy * drag + 95 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.glitter && Math.random() < 0.4) continue;
+      const k = 1 - p.life / p.max;
+      x.fillStyle = `hsla(${p.hue},100%,${55 + 25 * k}%,${Math.min(1, k * 1.5)})`;
+      x.beginPath(); x.arc(p.x, p.y, p.size * (0.5 + 0.5 * k), 0, Math.PI * 2); x.fill();
+    }
+    if (FW.running && (now < FW.launchUntil || FW.rockets.length || FW.parts.length)) FW.raf = requestAnimationFrame(fwLoop);
+    else if (FW.x) FW.x.clearRect(0, 0, FW.w, FW.h);
+  }
+
+  /* ---------- Background scene: two people debating two people ---------- */
+  function buildScene() {
+    const F = n => `fill:var(--${n})`;
+    const ST = n => `stroke:var(--${n})`;
+    let back = '', front = '';
+
+    function person(p) {
+      const { cx, dir, shirt, skin, hair, style, pose } = p;
+      const X = v => cx + dir * v;
+      let b = '', f = '';
+      if (style === 'bob') b += `<path style="${F(hair)}" d="M${X(-35)} 172 Q${X(-42)} 100 ${cx} 100 Q${X(42)} 100 ${X(35)} 164 Z"/>`;
+      if (style === 'pony') b += `<path style="${F(hair)}" d="M${X(-22)} 114 Q${X(-64)} 124 ${X(-48)} 182 Q${X(-40)} 148 ${X(-16)} 130 Z"/>`;
+      if (style === 'bun') b += `<circle style="${F(hair)}" cx="${X(-20)}" cy="106" r="16"/>`;
+
+      const arm = (pts) => `<path class="arm" style="${ST(shirt)}" d="M${pts.map(([a, y]) => `${X(a)} ${y}`).join(' L')}"/>`;
+      const hand = (a, y) => `<circle style="${F(skin)}" cx="${X(a)}" cy="${y}" r="11"/>`;
+
+      // back arm always rests on the desk
+      b += arm([[-36, 198], [-52, 258], [-30, 292]]);
+      f += hand(-30, 292);
+
+      b += `<path style="${F(shirt)}" d="M${cx - 46} 300 V212 Q${cx - 46} 182 ${cx - 16} 180 H${cx + 16} Q${cx + 46} 182 ${cx + 46} 212 V300 Z"/>`;
+      b += `<rect style="${F(skin)}" x="${cx - 9}" y="158" width="18" height="26" rx="4"/>`;
+      b += `<path style="${F('collar')}" d="M${cx - 15} 181 L${cx} 199 L${cx + 15} 181 Z"/>`;
+      b += `<circle style="${F(skin)}" cx="${cx}" cy="138" r="30"/>`;
+      if (style === 'short' || style === 'pony' || style === 'bun') {
+        b += `<path style="${F(hair)}" d="M${X(-31)} 142 Q${X(-35)} 104 ${X(2)} 104 Q${X(30)} 105 ${X(31)} 128 Q${X(10)} 115 ${X(-12)} 122 Q${X(-24)} 128 ${X(-31)} 142 Z"/>`;
+      } else {
+        b += `<path style="${F(hair)}" d="M${X(-31)} 148 Q${X(-36)} 104 ${X(2)} 103 Q${X(34)} 104 ${X(32)} 132 Q${X(14)} 112 ${X(-14)} 118 Q${X(-26)} 126 ${X(-31)} 148 Z"/>`;
+      }
+      b += `<circle style="${F('eye')}" cx="${X(14)}" cy="136" r="3.2"/>`;
+      if (pose === 'speak' || pose === 'point') b += `<ellipse style="${F('mouth')}" cx="${X(20)}" cy="154" rx="5" ry="4"/>`;
+      else b += `<path d="M${X(11)} 154 Q${X(17)} 157 ${X(22)} 153" fill="none" style="${ST('mouth')}" stroke-width="2.5" stroke-linecap="round"/>`;
+
+      if (pose === 'speak') {
+        b += arm([[38, 198], [82, 236], [104, 184]]);
+        f += hand(104, 184);
+      } else if (pose === 'point') {
+        b += arm([[38, 200], [84, 214], [122, 198]]);
+        f += `<path class="finger" style="${ST(skin)}" d="M${X(126)} 196 L${X(146)} 189"/>` + hand(122, 198);
+      } else if (pose === 'think') {
+        b += arm([[34, 202], [50, 286], [24, 170]]);
+        f += hand(24, 170);
+      } else { // notes
+        b += arm([[36, 198], [62, 262], [56, 236]]);
+        const px = dir > 0 ? X(52) - 6 : X(52) - 38;
+        f += `<g transform="rotate(${dir * -8} ${X(56)} 236)">
+                <rect style="${F('paper')}" x="${px}" y="196" width="44" height="54" rx="3"/>
+                <rect style="${F('paper-line')}" x="${px + 7}" y="206" width="30" height="3" rx="1.5"/>
+                <rect style="${F('paper-line')}" x="${px + 7}" y="215" width="24" height="3" rx="1.5"/>
+                <rect style="${F('paper-line')}" x="${px + 7}" y="224" width="28" height="3" rx="1.5"/>
+              </g>` + hand(56, 236);
+      }
+      back += b; front += f;
+    }
+
+    function desk(x0, x1, team, label) {
+      const mid = (x0 + x1) / 2;
+      return `<ellipse style="${F('floor-shadow')}" cx="${mid}" cy="432" rx="${(x1 - x0) / 2 + 30}" ry="9"/>
+        <rect style="${F(team)}" x="${x0}" y="300" width="${x1 - x0}" height="130" rx="6"/>
+        <rect style="${F('desk-top')}" x="${x0 - 14}" y="290" width="${x1 - x0 + 28}" height="16" rx="5"/>
+        <rect style="${F('plate')}" x="${mid - 70}" y="338" width="140" height="46" rx="10"/>
+        <text class="plate-text" x="${mid}" y="369" text-anchor="middle">${label}</text>`;
+    }
+
+    [
+      { cx: 175, dir: 1, shirt: 'shirt-1', skin: 'skin-1', hair: 'hair-3', style: 'bob', pose: 'notes' },
+      { cx: 355, dir: 1, shirt: 'shirt-2', skin: 'skin-3', hair: 'hair-1', style: 'short', pose: 'speak' },
+      { cx: 845, dir: -1, shirt: 'shirt-3', skin: 'skin-2', hair: 'hair-2', style: 'pony', pose: 'point' },
+      { cx: 1025, dir: -1, shirt: 'shirt-4', skin: 'skin-4', hair: 'hair-1', style: 'bun', pose: 'think' }
+    ].forEach(person);
+
+    const bubble = (x, y, w, h, tail, mark, flip) => `
+      <g>
+        <path style="${F('bubble')};${ST('bubble-stroke')}" stroke-width="2" d="${tail}"/>
+        <rect style="${F('bubble')};${ST('bubble-stroke')}" stroke-width="2" x="${x}" y="${y}" width="${w}" height="${h}" rx="26"/>
+        <path style="${F('bubble')}" d="${tail}"/>
+        <text class="mark-text" x="${flip ? x + w - 40 : x + 26}" y="${y + 56}">${mark}</text>
+        <rect style="${F('bubble-ink')}" x="${flip ? x + 22 : x + 64}" y="${y + 22}" width="${w - 96}" height="9" rx="4.5"/>
+        <rect style="${F('bubble-ink')}" x="${flip ? x + 22 : x + 64}" y="${y + 38}" width="${w - 122}" height="9" rx="4.5"/>
+        <rect style="${F('bubble-ink')}" x="${flip ? x + 22 : x + 64}" y="${y + 54}" width="${w - 108}" height="9" rx="4.5"/>
+      </g>`;
+
+    const svg = `
+    <svg viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--beam);stop-opacity:var(--beam-op)"/>
+          <stop offset="1" style="stop-color:var(--beam);stop-opacity:0"/>
+        </linearGradient>
+      </defs>
+      <polygon fill="url(#beam)" points="230,-400 330,-400 500,430 60,430"/>
+      <polygon fill="url(#beam)" points="870,-400 970,-400 1140,430 700,430"/>
+      <rect style="${F('floor')}" x="-3000" y="430" width="7200" height="1200"/>
+      <rect style="${F('floor-edge')}" x="-3000" y="430" width="7200" height="5"/>
+      ${back}
+      ${desk(80, 450, 'team-a', 'Pro')}
+      ${desk(750, 1120, 'team-b', 'Contra')}
+      ${front}
+      <!-- the timekeeper's handbell -->
+      <ellipse style="${F('floor-shadow')}" cx="600" cy="432" rx="44" ry="6"/>
+      <rect style="${F('wood')}" x="574" y="378" width="6" height="54"/>
+      <rect style="${F('wood')}" x="620" y="378" width="6" height="54"/>
+      <rect style="${F('desk-top')}" x="562" y="372" width="76" height="10" rx="3"/>
+      <rect style="${F('wood')}" x="595" y="318" width="10" height="22" rx="4"/>
+      <circle style="${F('wood')}" cx="600" cy="316" r="7"/>
+      <path style="${F('bell')}" d="M578 372 Q578 342 600 338 Q622 342 622 372 Z"/>
+      <ellipse style="${F('bell-dark')}" cx="600" cy="372" rx="24" ry="4"/>
+      ${bubble(400, 26, 210, 80, 'M440 100 L408 140 L470 104 Z', '!', false)}
+      ${bubble(592, 46, 210, 80, 'M762 120 L808 150 L736 124 Z', '?', true)}
+    </svg>`;
+    document.getElementById('scene').innerHTML = svg;
+  }
+
+  buildScene();
+  render();
+  setInterval(tick, 50);
+})();
+</script>
+</body>
+</html>
